@@ -3,14 +3,11 @@ package com.gateway;
 import com.carrotsearch.junitbenchmarks.BenchmarkOptions;
 import com.carrotsearch.junitbenchmarks.BenchmarkRule;
 import com.gateway.model.Account;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
-import org.mockserver.client.MockServerClient;
-import org.mockserver.model.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +21,6 @@ import org.testcontainers.utility.DockerImageName;
 
 import java.util.Base64;
 import java.util.Random;
-
-import static org.mockserver.model.HttpResponse.response;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
                 properties = {"rateLimiter.non-secure=true"})
@@ -56,32 +51,7 @@ public class GatewayRateLimiterTest {
     @Autowired
     TestRestTemplate testRestTemplate;
 
-    @BeforeClass
-    public static void init() {
-        System.setProperty("spring.cloud.gateway.routes[0].id", "account-service");
-        System.setProperty("spring.cloud.gateway.routes[0].uri",
-                "http://" + mockServer.getHost() + ":" + mockServer.getServerPort());
 
-        System.setProperty("spring.cloud.gateway.routes[0].predicates[0]", "Path=/account/**");
-        System.setProperty("spring.cloud.gateway.routes[0]" +
-                ".filters[0]", "RewritePath=/account/(?<path>.*), /$\\{path}");
-
-        System.setProperty("spring.cloud.gateway.routes[0].filters[1].name", "RequestRateLimiter");
-        System.setProperty("spring.cloud.gateway.routes[0]" +
-                ".filters[1].args.redis-rate-limiter.replenishRate", "10");
-        System.setProperty("spring.cloud.gateway.routes[0]" +
-                ".filters[1].args.redis-rate-limiter.burstCapacity", "20");
-//        System.setProperty("spring.cloud.gateway.routes[0].filters[1].args.redis-rate-limiter.requestedTokens", "15");
-        System.setProperty("spring.redis.host", redis.getHost());
-        System.setProperty("spring.redis.port", "" + redis.getMappedPort(6379));
-
-        new MockServerClient(mockServer.getContainerIpAddress(), mockServer.getServerPort())
-                .when(HttpRequest.request()
-                        .withPath("/1"))
-                .respond(response()
-                        .withBody("{\"id\":1,\"number\":\"1234567890\"}")
-                        .withHeader("Content-Type", "application/json"));
-    }
 
     @Test
     @BenchmarkOptions(warmupRounds = 0, concurrency = 6, benchmarkRounds = 600)
