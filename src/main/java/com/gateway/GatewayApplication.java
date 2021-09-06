@@ -23,38 +23,4 @@ public class GatewayApplication {
         SpringApplication.run(GatewayApplication.class, args);
     }
 
-    @Bean
-    @Primary
-    @ConditionalOnProperty("rateLimiter.non-secure")
-    KeyResolver userKeyResolver() {
-        return exchange -> Mono.just("1");
-    }
-
-    @Bean
-    @ConditionalOnProperty("rateLimiter.secure")
-    KeyResolver authUserKeyResolver() {
-        return exchange -> ReactiveSecurityContextHolder.getContext()
-                .map(ctx -> ctx.getAuthentication()
-                        .getPrincipal()
-                        .toString()
-                );
-    }
-
-
- @Bean
-    public Customizer<ReactiveResilience4JCircuitBreakerFactory> defaultCustomizer() {
-        return factory -> factory.configureDefault(id -> new Resilience4JConfigBuilder(id)
-//				.circuitBreakerConfig(CircuitBreakerConfig.ofDefaults())
-                .circuitBreakerConfig(CircuitBreakerConfig.custom()
-                        .slidingWindowSize(5)
-                        .permittedNumberOfCallsInHalfOpenState(5)
-                        .failureRateThreshold(50.0F)
-                        .waitDurationInOpenState(Duration.ofMillis(30))
-//                        .slowCallDurationThreshold(Duration.ofMillis(200))
-//                        .slowCallRateThreshold(50.0F)
-                        .build())
-                .timeLimiterConfig(TimeLimiterConfig.custom().timeoutDuration(Duration.ofMillis(200)).build())
-                .build());
-    }
-
 }

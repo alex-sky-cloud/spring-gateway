@@ -11,14 +11,18 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
 @Configuration
-@ConditionalOnProperty("rateLimiter.secure")
+//@ConditionalOnProperty("rateLimiter.secure")
 @EnableWebFluxSecurity
 public class SecurityConfig {
 
 
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
-        http.authorizeExchange(exchanges -> exchanges.anyExchange().authenticated())
+
+        http.authorizeExchange(exchanges ->
+                exchanges
+                        .anyExchange()
+                        .authenticated())
                 .httpBasic();
         http.csrf().disable();
         return http.build();
@@ -26,21 +30,26 @@ public class SecurityConfig {
 
     @Bean
     public MapReactiveUserDetailsService users() {
+
         UserDetails user1 = User.builder()
                 .username("user1")
                 .password("{noop}1234")
                 .roles("USER")
                 .build();
+
         UserDetails user2 = User.builder()
                 .username("user2")
                 .password("{noop}1234")
                 .roles("USER")
                 .build();
+
         UserDetails user3 = User.builder()
                 .username("user3")
                 .password("{noop}1234")
                 .roles("USER")
                 .build();
         return new MapReactiveUserDetailsService(user1, user2, user3);
+
     }
+
 }
